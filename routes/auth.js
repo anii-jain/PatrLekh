@@ -4,10 +4,11 @@ const User = require("../models/User");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const fetchuser = require ('../middleware/fetchuser');
 
 const JWT_SECRET = "Heyyy@guys@i@am@animesh@jain";
 
-// Create a user using: POST "/api/auth/createuser".
+//ROUTE1:  Create a user using: POST "/api/auth/: createuser".
 router.post(
   "/createuser",
   [
@@ -62,7 +63,7 @@ router.post(
   }
 );
 
-// Authenticate a user using: POST "/api/auth/login". No login required
+//ROUTE2: Authenticate a user using: POST "/api/auth/login". No login required
 router.post(
   "/login",
   [
@@ -75,15 +76,19 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const {email, password} = req.body;
-    try{
-      let user = await User.findOne({email});
-      if (!user){
-        return res.status(400).json({error: "Please try to login with correct credentials"});
+    const { email, password } = req.body;
+    try {
+      let user = await User.findOne({ email });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ error: "Please try to login with correct credentials" });
       }
       const passwordCompare = await bcrypt.compare(password, user.password);
-      if (!passwordCompare){
-        return res.status(400).json({error: "Please try to login with correct credentials"});
+      if (!passwordCompare) {
+        return res
+          .status(400)
+          .json({ error: "Please try to login with correct credentials" });
       }
       const data = {
         user: {
@@ -91,11 +96,25 @@ router.post(
         },
       };
       const authtoken = jwt.sign(data, JWT_SECRET);
-      res.json({authtoken});
-    }catch (error){
+      res.json({ authtoken });
+    } catch (error) {
       console.log(error.message);
       res.status(500).send("Internal server error");
     }
   }
 );
+
+// ROUTE 3: Get loogin user details using: POST "/api/auth/getuser". Login Required
+router.post(
+  "/getuser", fetchuser, async (req, res) => {
+    try {
+      userID = req.user.id;
+      const user = await User.findById(userID).select("-password");
+      res.send(user);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).send("Internal server error");
+    }
+  });
+
 module.exports = router;
