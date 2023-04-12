@@ -3,7 +3,7 @@ const express = require('express');
 var cors = require('cors');
 
 connectToMongo();
-
+const hostname = '0.0.0.0'
 const app = express();
 const port = 5000;
 
@@ -20,6 +20,6 @@ app.get('/',(req,res) => {
 
 
 
-app.listen(port,() => {
+app.listen(port,hostname,() => {
     console.log (`eNoteBook listening at http://localhost:${port}`);
 })
